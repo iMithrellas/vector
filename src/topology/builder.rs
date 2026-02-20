@@ -28,7 +28,7 @@ use vector_lib::{
     internal_event::{self, CountByteSize, EventsSent, InternalEventHandle as _, Registered},
     latency::LatencyRecorder,
     schema::Definition,
-    source_sender::{CHUNK_SIZE, SourceSenderItem},
+    source_sender::SourceSenderItem,
     transform::update_runtime_schema_definition,
 };
 use vector_vrl_metrics::MetricsStorage;
@@ -60,9 +60,9 @@ static ENRICHMENT_TABLES: LazyLock<vector_lib::enrichment::TableRegistry> =
 static METRICS_STORAGE: LazyLock<MetricsStorage> = LazyLock::new(MetricsStorage::default);
 
 pub(crate) static SOURCE_SENDER_BUFFER_SIZE: LazyLock<usize> =
-    LazyLock::new(|| *TRANSFORM_CONCURRENCY_LIMIT * CHUNK_SIZE);
+    LazyLock::new(|| *TRANSFORM_CONCURRENCY_LIMIT * 320);
 
-const READY_ARRAY_CAPACITY: NonZeroUsize = NonZeroUsize::new(CHUNK_SIZE * 4).unwrap();
+const READY_ARRAY_CAPACITY: NonZeroUsize = NonZeroUsize::new(4_000).unwrap();
 pub(crate) const TOPOLOGY_BUFFER_SIZE: NonZeroUsize = NonZeroUsize::new(100).unwrap();
 const TRANSFORM_CHANNEL_METRIC_PREFIX: &str = "transform_buffer";
 
