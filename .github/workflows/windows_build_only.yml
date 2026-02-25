@@ -1,0 +1,51 @@
+name: Windows Build Only
+
+on:
+  workflow_dispatch:
+    inputs:
+      ref:
+        description: Git ref to checkout
+        required: false
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  build-windows-msvc:
+    name: Build vector.exe (x86_64-pc-windows-msvc)
+    runs-on: windows-2022
+    timeout-minutes: 90
+    env:
+      RUSTFLAGS: -D warnings -Ctarget-feature=+crt-static
+    steps:
+      - name: Checkout branch
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          ref: ${{ inputs.ref || github.ref }}
+
+      - name: Set up Python
+        uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405 # v6.2.0
+        with:
+          python-version: "3.10"
+
+      - name: Bootstrap runner environment (Windows-specific)
+        run: .\scripts\environment\bootstrap-windows-2025.ps1
+
+      - name: Build Vector binary
+        shell: bash
+        run: |
+          cargo build --release --target x86_64-pc-windows-msvc --no-default-features --features default-msvc
+
+      - name: Stage build artifacts
+        shell: bash
+        run: |
+          mkdir -p target/artifacts
+          cp target/x86_64-pc-windows-msvc/release/vector.exe target/artifacts/
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0
+        with:
+          name: vector-x86_64-pc-windows-msvc-binary
+          path: target/artifacts/vector.exe
+          if-no-files-found: error
